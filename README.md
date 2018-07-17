@@ -33,23 +33,41 @@ module "iam" {
     "role/world"
   ]
 }
-
-output "arns" {
-  value = "${module.iam.arns}"
-}
 ```
 
-The expected result after applying the above configuration will look like:
+The expected output of the module with such configuration will look like:
 
 ```
 Apply complete! Resources: 0 added, 0 changed, 0 destroyed.
 
 Outputs:
 
+account_id = 1233456789012
 arns = [
-    arn:aws:iam::123456789012:group/myGroup,
-    arn:aws:iam::123456789012:role/world,
-    arn:aws:iam::123456789012:user/ahha,
-    arn:aws:iam::123456789012:user/MyORG/MyUnit/hello
+    arn:aws:iam::1233456789012:group/myGroup,
+    arn:aws:iam::1233456789012:role/world,
+    arn:aws:iam::1233456789012:user/ahha,
+    arn:aws:iam::1233456789012:user/myorg/myunit/hello
+]
+names = [
+    myGroup,
+    world,
+    ahha,
+    hello
+]
+partition = aws
+paths = [
+    group/myGroup,
+    role/world,
+    user/ahha,
+    user/myorg/myunit/hello
+]
+region =
+service = iam
+types = [
+    group,
+    role,
+    user,
+    user
 ]
 ```

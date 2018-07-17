@@ -23,6 +23,12 @@ locals {
         data.null_data_source.select.*.outputs.use_path, list("false")
       )
     )}"
+
+  arns = "${sort(concat(local.resources_use_path, local.resources))}"
+
+  type_regex = "/(.*:){5}(.*?)[:/].*/"
+  name_regex = "/(.*:){5}([^:/]*[:/])*/"
+  path_regex = "/(.*:){5}/"
 }
 
 data "aws_caller_identity" "current" {}
@@ -50,5 +56,15 @@ resource "null_resource" "prevent" {
 
   provisioner "local-exec" {
     command = "[ '${var.resource_path}' != '' ] || { echo 'You must provide var.resource_path'; exit 1; }"
+  }
+}
+
+data "null_data_source" "resource" {
+  count = "${length(var.resources)}"
+
+  inputs {
+    name = "${replace(local.arns[count.index], local.name_regex, "")}"
+    path = "${replace(local.arns[count.index], local.path_regex, "")}"
+    type = "${replace(local.arns[count.index], local.type_regex, "$2")}"
   }
 }
