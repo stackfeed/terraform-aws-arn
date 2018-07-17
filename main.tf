@@ -40,3 +40,15 @@ data "null_data_source" "select" {
     }"
   }
 }
+
+resource "null_resource" "prevent" {
+  count = "${contains(data.null_data_source.select.*.outputs.use_type, "true") ? 1 : 0}"
+
+  triggers {
+    resource_type = "${var.resource_type}"
+  }
+
+  provisioner "local-exec" {
+    command = "[ '${var.resource_type}' != '' ] || { echo 'You must provide var.resource_type'; exit 1; }"
+  }
+}
