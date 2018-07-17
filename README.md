@@ -1,8 +1,8 @@
-# Terraform aws ARN generation module
+# Terraform AWS ARNs generation module
 
-This module is intended to be a helper for generation ARNs, it's especially handy to use during principal specification in policies.
+This module is intended to be a helper for ARN identifiers generation. It's especially handy for generating a list of ARNs when specifying principals in a Policy.
 
-**Note**: currently this module module only generates iam ARNs.
+**Note**: currently this module module is used to generate IAM ARNs.
 
 ## Variables
 
