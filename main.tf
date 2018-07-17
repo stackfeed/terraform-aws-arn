@@ -6,12 +6,12 @@ locals {
   region   = "${contains(local.service_needs_region, var.service) ? local.selected_region : ""}"
   arn_base = "${format("arn:%v:%v:%v:%v", var.partition, var.service, local.region, local.account_id)}"
 
-  resources_use_type = "${
+  resources_use_path = "${
     formatlist(
-      "${local.arn_base}:${var.resource_type}%v",
+      "${local.arn_base}:${var.resource_path}%v",
       matchkeys(
         data.null_data_source.select.*.outputs.name,
-        data.null_data_source.select.*.outputs.use_type, list("true")
+        data.null_data_source.select.*.outputs.use_path, list("true")
       )
     )}"
 
@@ -20,7 +20,7 @@ locals {
       "${local.arn_base}:%v",
       matchkeys(
         data.null_data_source.select.*.outputs.name,
-        data.null_data_source.select.*.outputs.use_type, list("false")
+        data.null_data_source.select.*.outputs.use_path, list("false")
       )
     )}"
 }
@@ -34,7 +34,7 @@ data "null_data_source" "select" {
   inputs {
     name = "${var.resources[count.index]}"
 
-    use_type = "${
+    use_path = "${
       length(split("/", var.resources[count.index])) +
       length(split(":", var.resources[count.index])) == 2
     }"
@@ -42,13 +42,13 @@ data "null_data_source" "select" {
 }
 
 resource "null_resource" "prevent" {
-  count = "${contains(data.null_data_source.select.*.outputs.use_type, "true") ? 1 : 0}"
+  count = "${contains(data.null_data_source.select.*.outputs.use_path, "true") ? 1 : 0}"
 
   triggers {
-    resource_type = "${var.resource_type}"
+    resource_path = "${var.resource_path}"
   }
 
   provisioner "local-exec" {
-    command = "[ '${var.resource_type}' != '' ] || { echo 'You must provide var.resource_type'; exit 1; }"
+    command = "[ '${var.resource_path}' != '' ] || { echo 'You must provide var.resource_path'; exit 1; }"
   }
 }

@@ -18,8 +18,8 @@ variable "account_id" {
   default     = ""
 }
 
-variable "resource_type" {
-  description = "Resource type to use by default (resourcetype: or resourcetype/) if it's not the part of a resource name."
+variable "resource_path" {
+  description = "Resource path to use by default (ex. user/MyORG/MyUnit/)."
   default     = ""
 }
 

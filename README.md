@@ -12,7 +12,7 @@ This module is intended to be a helper for ARN identifiers generation. It's espe
 | **service** | The service namespace that identifies the AWS product (for example: iam, s3). | **Required** |
 | **region** | The region the resource resides in. | `""` |
 | **account_id** | The ID of the AWS account that owns the resources. | `""` |
-| **resource_type** | Resource type to use by default (resourcetype: or resourcetype/) if it's not the part of a resource name. | `""` |
+| **resource_path** | Resource path to use by default (ex. user/MyORG/MyUnit/). Note that it **must explicitly contain** the resource type.| `""` |
 | **resources** | The list of resource short names for which the full ARN resource identifiers will be generated. | **Required** |
 
 ## Usage
@@ -21,13 +21,14 @@ The bellow example is quite self-explanatory, have a look a the following module
 
 ```hcl
 module "iam" {
-  source = "git::https://github.com/stackfeed/terraform-aws-arn?ref=master"
-  service = "iam"
-  resource_type = "user/"
+  source        = "git::https://github.com/stackfeed/terraform-aws-arn?ref=master"
+  service       = "iam"
+  resource_path = "user/MyORG/MyUnit/"
+
   resources = [
     "hello",
     "user/ahha",
-    "john",
+    "group/myGroup",
     "role/world"
   ]
 }
@@ -48,6 +49,6 @@ arns = [
     arn:aws:iam::123456789012:group/myGroup,
     arn:aws:iam::123456789012:role/world,
     arn:aws:iam::123456789012:user/ahha,
-    arn:aws:iam::123456789012:user/hello
+    arn:aws:iam::123456789012:user/MyORG/MyUnit/hello
 ]
 ```
