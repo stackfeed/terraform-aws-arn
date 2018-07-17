@@ -29,7 +29,7 @@ data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
 data "null_data_source" "select" {
-  count = "${length(var.resources)}"
+  count = "${length(var.resources) * var.enabled}"
 
   inputs {
     name = "${var.resources[count.index]}"

@@ -8,7 +8,8 @@ This module is intended to be a helper for ARN identifiers generation. It's espe
 
 | Name | Description | Default |
 |---|---|---|
-| **partition** | The partition that the resource is in. | `aws` |
+| **enabled** | Set to false to prevent the module from creating any resources. | `true` |
+| **partition** | The partition that the resource is in. | `"aws"` |
 | **service** | The service namespace that identifies the AWS product (for example: iam, s3). | **Required** |
 | **region** | The region the resource resides in. | `""` |
 | **account_id** | The ID of the AWS account that owns the resources. | `""` |
