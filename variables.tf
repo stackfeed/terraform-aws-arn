@@ -19,7 +19,7 @@ variable "region" {
 }
 
 variable "account_id" {
-  description = "The ID of the AWS account that owns the resources."
+  description = "The account ID used for generated ARNs. If not set caller account ID is used."
   default     = ""
 }
 

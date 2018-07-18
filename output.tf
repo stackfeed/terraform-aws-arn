@@ -14,8 +14,12 @@ output "types" {
   value = "${data.null_data_source.resource.*.outputs.type}"
 }
 
-output "account_id" {
-  value = "${local.account_id}"
+output "account_ids" {
+  value = "${data.null_data_source.resource.*.outputs.account_id}"
+}
+
+output "regions" {
+  value = "${data.null_data_source.resource.*.outputs.region}"
 }
 
 output "service" {
@@ -24,8 +28,4 @@ output "service" {
 
 output "partition" {
   value = "${var.partition}"
-}
-
-output "region" {
-  value = "${local.region}"
 }
