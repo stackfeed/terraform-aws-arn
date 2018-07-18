@@ -60,7 +60,7 @@ resource "null_resource" "prevent" {
 }
 
 data "null_data_source" "resource" {
-  count = "${length(var.resources)}"
+  count = "${length(var.resources) * var.enabled}"
 
   inputs {
     name = "${replace(local.arns[count.index], local.name_regex, "")}"
