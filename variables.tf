@@ -24,7 +24,7 @@ variable "account_id" {
 }
 
 variable "resource_path" {
-  description = "Resource path to use by default (ex. user/MyORG/MyUnit/)."
+  description = "Resource base path to use by default (ex. MyORG/MyUnit/). Note that path starts with no separator, but must end with it."
   default     = ""
 }
 

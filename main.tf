@@ -1,92 +1,72 @@
 locals {
   service_needs_region = []
-  account_id           = "${coalesce(var.account_id, data.aws_caller_identity.current.account_id)}"
-  selected_region      = "${coalesce(var.region, data.aws_region.current.name)}"
+
+  account_id = "${
+    coalesce(var.account_id, element(
+      concat(data.aws_caller_identity.current.*.account_id, list("")), 0)
+    )}"
+
+  selected_region = "${
+    coalesce(var.region, element(
+      concat(data.aws_region.current.*.name, list("")), 0)
+    )}"
 
   region   = "${contains(local.service_needs_region, var.service) ? local.selected_region : ""}"
   arn_base = "${format("arn:%v:%v:%v:%v", var.partition, var.service, local.region, local.account_id)}"
 
-  with_arn = "${
+  resources_with_arn = "${
     matchkeys(
-      data.null_data_source.select_arn.*.outputs.name,
-      data.null_data_source.select_arn.*.outputs.has_arn, list("true")
-    )}"
-
-  without_arn = "${
-    matchkeys(
-      data.null_data_source.select_arn.*.outputs.name,
-      data.null_data_source.select_arn.*.outputs.has_arn, list("false")
-    )}"
-
-  resources_use_path = "${
-    formatlist(
-      "${local.arn_base}:${var.resource_path}%v",
-      matchkeys(
-        data.null_data_source.select.*.outputs.name,
-        data.null_data_source.select.*.outputs.use_path, list("true")
-      )
+      data.null_data_source.select.*.outputs.name,
+      data.null_data_source.select.*.outputs.has_arn, list("true")
     )}"
 
   resources = "${
-    formatlist(
-      "${local.arn_base}:%v",
-      matchkeys(
-        data.null_data_source.select.*.outputs.name,
-        data.null_data_source.select.*.outputs.use_path, list("false")
-      )
+    matchkeys(
+      data.null_data_source.select.*.outputs.name,
+      data.null_data_source.select.*.outputs.has_arn, list("false")
     )}"
 
-  arns = "${sort(
-    concat(
-      local.with_arn,
-      local.resources_use_path,
-      local.resources,
-    )
-  )}"
+  generated = "${formatlist("${local.arn_base}:%v", data.null_data_source.generated.*.outputs.path)}"
 
-  account_id_regex = "/(.*?:){4}(\\d{12}).*/"
-  region_regex     = "/(.*?:){3}(.*?):.*/"
+  all = "${sort(concat(local.resources_with_arn, local.generated))}"
+
+  account_id_regex    = "/(.*?:){4}(\\d{12}).*/"
+  region_regex        = "/(.*?:){3}(.*?):.*/"
+  insert_path_regex   = "/^(([^:/]*)[:/])([^:/]*)$/"
+  insert_path_replace = "$$1${var.resource_path}$$2"
 
   type_regex = "/(.*:)(.*?)[:/].*/"
   name_regex = "/(.*:)([^:/]*[:/])*/"
-  path_regex = "/(.*:)/"
-  arn_regex  = "/^(arn):.*/"
+  path_regex = "/(.*:)[^:/]*(.*[:/]).*/"
 }
 
-data "aws_caller_identity" "current" {}
-data "aws_region" "current" {}
+data "aws_caller_identity" "current" {
+  count = "${signum(length(local.resources))}"
+}
 
-data "null_data_source" "select_arn" {
+data "aws_region" "current" {
+  count = "${signum(length(local.resources))}"
+}
+
+data "null_data_source" "select" {
   count = "${length(var.resources) * var.enabled}"
 
   inputs {
     name    = "${var.resources[count.index]}"
-    has_arn = "${replace(var.resources[count.index], local.arn_regex, "$1") == "arn"}"
+    has_arn = "${replace(var.resources[count.index], "/^(arn):.*/", "$1") == "arn"}"
   }
 }
 
-data "null_data_source" "select" {
-  count = "${length(local.without_arn) * var.enabled}"
+data "null_data_source" "generated" {
+  count = "${length(local.resources) * var.enabled}"
 
   inputs {
-    name = "${local.without_arn[count.index]}"
-
-    use_path = "${
-      length(split("/", local.without_arn[count.index])) +
-      length(split(":", local.without_arn[count.index])) == 2
-    }"
-  }
-}
-
-resource "null_resource" "prevent" {
-  count = "${contains(data.null_data_source.select.*.outputs.use_path, "true") ? 1 : 0}"
-
-  triggers {
-    resource_path = "${var.resource_path}"
-  }
-
-  provisioner "local-exec" {
-    command = "[ '${var.resource_path}' != '' ] || { echo 'You must provide var.resource_path'; exit 1; }"
+    path = "${
+      replace(
+        replace(
+          local.resources[count.index], local.insert_path_regex, "$1 $3"
+        ), "/ /", "${var.resource_path}"
+      )}"
   }
 }
 
@@ -94,10 +74,10 @@ data "null_data_source" "resource" {
   count = "${length(var.resources) * var.enabled}"
 
   inputs {
-    name       = "${replace(local.arns[count.index], local.name_regex, "")}"
-    path       = "${replace(local.arns[count.index], local.path_regex, "")}"
-    type       = "${replace(local.arns[count.index], local.type_regex, "$2")}"
-    account_id = "${replace(local.arns[count.index], local.account_id_regex, "$2")}"
-    region     = "${replace(local.arns[count.index], local.region_regex, "$2")}"
+    name       = "${replace(local.all[count.index], local.name_regex, "")}"
+    path       = "${replace(local.all[count.index], local.path_regex, "$2")}"
+    type       = "${replace(local.all[count.index], local.type_regex, "$2")}"
+    account_id = "${replace(local.all[count.index], local.account_id_regex, "$2")}"
+    region     = "${replace(local.all[count.index], local.region_regex, "$2")}"
   }
 }

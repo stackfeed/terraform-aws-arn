@@ -1,5 +1,5 @@
 output "arns" {
-  value = "${local.arns}"
+  value = "${local.all}"
 }
 
 output "names" {
@@ -20,12 +20,4 @@ output "account_ids" {
 
 output "regions" {
   value = "${data.null_data_source.resource.*.outputs.region}"
-}
-
-output "service" {
-  value = "${var.service}"
-}
-
-output "partition" {
-  value = "${var.partition}"
 }
